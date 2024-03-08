@@ -1,0 +1,337 @@
+Program.Sub.ScreenSU.Start
+gui.SS_Form1..create
+gui.SS_Form1..caption("COGS Sales Report")
+gui.SS_Form1..size(4135,2190)
+gui.SS_Form1..position(0,0)
+gui.SS_Form1..event(unload,ss_form1_unload)
+gui.SS_Form1..alwaysontop(False)
+gui.SS_Form1..fontname("Arial")
+gui.SS_Form1..fontsize(8)
+gui.SS_Form1..forecolor(0)
+gui.SS_Form1..fontstyle(,,,,)
+gui.SS_Form1..BackColor(-2147483633)
+gui.SS_Form1..controlbox(True)
+gui.SS_Form1..maxbutton(False)
+gui.SS_Form1..minbutton(False)
+gui.SS_Form1..mousepointer(0)
+gui.SS_Form1..moveable(True)
+gui.SS_Form1..sizeable(False)
+gui.SS_Form1..ShowInTaskBar(True)
+gui.SS_Form1..titlebar(True)
+gui.SS_Form1.lbl_dtpStart.create(label,"Start Date",True,1800,200,1,100,135,True,0,Arial,8,-2147483633,0)
+gui.SS_Form1.dtpStart.create(datepicker)
+gui.SS_Form1.dtpStart.visible(True)
+gui.SS_Form1.dtpStart.size(1800,345)
+gui.SS_Form1.dtpStart.zorder(0)
+gui.SS_Form1.dtpStart.position(100,335)
+gui.SS_Form1.dtpStart.enabled(True)
+gui.SS_Form1.dtpStart.checkbox(False)
+gui.SS_Form1.lbl_dtpEnd.create(label,"End Date",True,1800,200,1,1985,135,True,0,Arial,8,-2147483633,0)
+gui.SS_Form1.dtpEnd.create(datepicker)
+gui.SS_Form1.dtpEnd.visible(True)
+gui.SS_Form1.dtpEnd.size(1800,345)
+gui.SS_Form1.dtpEnd.zorder(0)
+gui.SS_Form1.dtpEnd.position(1985,335)
+gui.SS_Form1.dtpEnd.enabled(True)
+gui.SS_Form1.dtpEnd.checkbox(False)
+gui.SS_Form1.chkDetial.create(checkbox)
+gui.SS_Form1.chkDetial.caption("Print Detail")
+gui.SS_Form1.chkDetial.visible(True)
+gui.SS_Form1.chkDetial.size(1800,300)
+gui.SS_Form1.chkDetial.zorder(0)
+gui.SS_Form1.chkDetial.position(100,850)
+gui.SS_Form1.chkDetial.enabled(True)
+gui.SS_Form1.chkDetial.alignment(0)
+gui.SS_Form1.chkDetial.fontname("Arial")
+gui.SS_Form1.chkDetial.fontsize(8)
+gui.SS_Form1.cmdPrint.create(button)
+gui.SS_Form1.cmdPrint.caption("Print")
+gui.SS_Form1.cmdPrint.visible(True)
+gui.SS_Form1.cmdPrint.size(1000,360)
+gui.SS_Form1.cmdPrint.zorder(0)
+gui.SS_Form1.cmdPrint.position(100,1235)
+gui.SS_Form1.cmdPrint.enabled(True)
+gui.SS_Form1.cmdPrint.fontname("Arial")
+gui.SS_Form1.cmdPrint.fontsize(8)
+gui.SS_Form1.cmdPrint.event(click,cmdprint_click)
+
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+
+Variable.Global.bChk.Declare(Boolean,True)
+Variable.UDT.uRpt.Define("Terminal",String,"Terminal")
+Variable.UDT.uRpt.Define("OrderNo",String,"Order_Number")
+Variable.UDT.uRpt.Define("Line",String,"Order_Line")
+Variable.UDT.uRpt.Define("Invoice",String,"Invoice")
+Variable.UDT.uRpt.Define("Job",String,"Job")
+Variable.UDT.uRpt.Define("Suffix",String,"Suffix")
+Variable.UDT.uRpt.Define("Sales_Stock",Float,"Sales_Stock")
+Variable.UDT.uRpt.Define("Sales_Special",Float,"Sales_Special")
+Variable.UDT.uRpt.Define("Sales_Purchased",Float,"Sales_Purchased")
+Variable.UDT.uRpt.Define("Cost_Stock",Float,"Cost_Stock")
+Variable.UDT.uRpt.Define("Quantity",Float,"Quantity")
+Variable.UDT.uRpt.Define("Cost_Sepcial",Float,"Cost_Special")
+Variable.UDT.uRpt.Define("Cost_Purchased",Float,"Cost_Purchased")
+Variable.UDT.uRpt.Define("Special_Material",Float,"Special_Material")
+Variable.UDT.uRpt.Define("Special_Labor",Float,"Special_Labor")
+Variable.UDT.uRpt.Define("Special_OH",Float,"Special_Overhead")
+Variable.UDT.uRpt.Define("Stock_Material",Float,"Stock_Material")
+Variable.UDT.uRpt.Define("Stock_Labor",Float,"Stock_Labor")
+Variable.UDT.uRpt.Define("Stock_OH",Float,"Stock_Overhead")
+Variable.UDT.uRpt.Define("Blank_Material",Float,"Blank_Material")
+Variable.UDT.uRpt.Define("Blank_Labor",Float,"Blank_Labor")
+Variable.UDT.uRpt.Define("Blank_OH",Float,"Blank_Overhead")
+Variable.UDT.uRpt.Define("Date",Date,"Transaction_Date")
+Variable.UDT.uRpt.Define("Cost_Blank",Float,"Cost_Blank")
+Variable.uGlobal.uRpt.Declare("uRpt")
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+'Coded by: mla
+'Project Start Date: 9/19/2011
+'Notes:
+'  Cleveland Punch and Die
+F.ODBC.Connection!con.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass,8000)
+Gui.SS_Form1..Visible(True)
+
+Program.Sub.Main.End
+
+program.sub.cmdprint_click.start
+F.Intrinsic.Control.SetErrorHandler("cmdprint_click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+F.Intrinsic.Control.CallSub(Opchk)
+F.Intrinsic.Control.If(V.Global.bChk,=,True)
+	Gui.SS_Form1..Visible(False)
+	F.Intrinsic.Control.CallSub(Loadudt)
+	F.Intrinsic.Control.CallSub(Loadrst)
+	F.Intrinsic.Control.CallSub(Callbi)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdprint_click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3782_COGS_Sales.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+program.sub.cmdprint_click.end
+
+program.sub.ss_form1_unload.start
+F.ODBC.Connection!con.Close
+F.Intrinsic.Control.End
+
+program.sub.ss_form1_unload.end
+
+Program.Sub.OpChk.Start
+F.Intrinsic.Control.SetErrorHandler("OpChk_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+F.Intrinsic.Control.If(V.Screen.SS_Form1!dtpStart.Value,>,V.Screen.SS_Form1!dtpEnd.Value)
+	F.Intrinsic.UI.Msgbox("Start date greater than end date!","Date Error")
+	V.Global.bChk.Set(False)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("OpChk_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3782_COGS_Sales.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.OpChk.End
+
+Program.Sub.LoadUDT.Start
+F.Intrinsic.Control.SetErrorHandler("LoadUDT_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSql.Declare(String)
+V.Local.dStart.Declare(Date)
+V.Local.dEnd.Declare(Date)
+V.Local.iUB.Declare(Long)
+V.Local.iGLChk.Declare(Long)
+V.Local.fExten.Declare(Float)
+V.Local.sRet.Declare(String)
+V.Local.fCost.Declare(Float)
+
+V.uGlobal.uRpt.Redim(-1,-1)
+V.Local.iUB.Set(-1)
+V.Local.dStart.Set(V.Screen.SS_Form1!dtpStart.Value)
+V.Local.dEnd.Set(V.Screen.SS_Form1!dtpEnd.Value)
+F.Intrinsic.String.Concat("Select INVOICE, ORDER_NO, ORDER_LINE, DATE_INVOICE, QTY_SHIPPED, GL_ACCOUNT, JOB, SUFFIX, PRICE, EXTENSION from V_ORDER_HIST_LINE where DATE_INVOICE between '",V.Local.dStart.PervasiveDate,"' and '",V.Local.dEnd.PervasiveDate,"'",V.Local.sSql)
+F.ODBC.Connection!con.OpenRecordsetRO("rst",V.Local.sSql)
+F.Intrinsic.Control.DoUntil(V.ODBC.con!rst.EOF,=,True)
+	V.Local.iGLChk.Set(-1)
+	F.Intrinsic.Control.SelectCase(V.ODBC.con!rst.FieldValTrim!GL_ACCOUNT)
+		F.Intrinsic.Control.Case("40000")
+			V.Local.iGLChk.Set(0)
+		F.Intrinsic.Control.Case("40020")
+			V.Local.iGLChk.Set(1)
+		F.Intrinsic.Control.Case("40010")
+			V.Local.iGLChk.Set(2)
+		F.Intrinsic.Control.Case("40030")
+			V.Local.iGLChk.Set(2)
+		F.Intrinsic.Control.Case("40050")
+			V.Local.iGLChk.Set(2)
+		F.Intrinsic.Control.Case("40060")
+			V.Local.iGLChk.Set(2)
+	F.Intrinsic.Control.EndSelect
+	F.Intrinsic.Control.If(V.Local.iGLChk,>,-1)
+		F.Intrinsic.Control.If(V.uGlobal.uRpt.UBound,=,-1)
+			V.uGlobal.uRpt.Redim(0,0)
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.Math.Add(V.Local.iUB,1,V.Local.iUB)
+		V.uGlobal.uRpt.RedimPreserve(0,V.Local.iUB)
+		V.uGlobal.uRpt(V.Local.iUB)!Terminal.Set(V.Caller.Terminal)
+		V.uGlobal.uRpt(V.Local.iUB)!Date.Set(V.ODBC.con!rst.FieldVal!DATE_INVOICE)
+		V.uGlobal.uRpt(V.Local.iUB)!Invoice.Set(V.ODBC.con!rst.FieldValTrim!INVOICE)
+		V.uGlobal.uRpt(V.Local.iUB)!OrderNo.Set(V.ODBC.con!rst.FieldValTrim!ORDER_NO)
+		V.uGlobal.uRpt(V.Local.iUB)!Line.Set(V.ODBC.con!rst.FieldValTrim!ORDER_LINE)
+		V.uGlobal.uRpt(V.Local.iUB)!Quantity.Set(V.ODBC.con!rst.FieldValFloat!QTY_SHIPPED)
+		F.Intrinsic.Control.SelectCase(V.Local.iGLChk)
+			F.Intrinsic.Control.Case(0)
+				V.uGlobal.uRpt(V.Local.iUB)!Sales_Stock.Set(V.ODBC.con!rst.FieldValFloat!EXTENSION)
+			F.Intrinsic.Control.Case(1)
+				V.uGlobal.uRpt(V.Local.iUB)!Sales_Purchased.Set(V.ODBC.con!rst.FieldValFloat!EXTENSION)
+			F.Intrinsic.Control.Case(2)
+				V.uGlobal.uRpt(V.Local.iUB)!Sales_Special.Set(V.ODBC.con!rst.FieldValFloat!EXTENSION)
+				F.Intrinsic.Variable.UDTMultiSeek(V.uGlobal.uRpt!Job,V.ODBC.con!rst.FieldValTrim!JOB,V.uGlobal.uRpt!Suffix,V.ODBC.con!rst.FieldValTrim!SUFFIX,V.Local.sRet)
+				F.Intrinsic.Control.If(V.Local.sRet,=,"")
+					F.Intrinsic.String.Concat("Select * From JOB_HEADER where JOB = '",V.ODBC.con!rst.FieldValTrim!JOB,"' and SUFFIX = '",V.ODBC.con!rst.FieldValTrim!SUFFIX,"'",V.Local.sSql)
+					F.ODBC.Connection!con.OpenRecordsetRO("rstJob",V.Local.sSql)
+					F.Intrinsic.Control.If(V.ODBC.con!rstJob.EOF,=,False)
+						V.uGlobal.uRpt(V.Local.iUB)!Job.Set(V.ODBC.con!rst.FieldValTrim!Job)
+						V.uGlobal.uRpt(V.Local.iUB)!Suffix.Set(V.ODBC.con!rst.FieldValTrim!Suffix)
+						V.uGlobal.uRpt(V.Local.iUB)!Special_Material.Set(V.ODBC.con!rstJob.FieldValFloat!AMT_MATERIAL)
+						V.uGlobal.uRpt(V.Local.iUB)!Special_Labor.Set(V.ODBC.con!rstJob.FieldValFloat!AMT_LABOR)
+						V.uGlobal.uRpt(V.Local.iUB)!Special_OH.Set(V.ODBC.con!rstJob.FieldValFloat!AMT_OVERHEAD)
+						F.Intrinsic.Math.Add(V.ODBC.con!rstJob.FieldValFloat!AMT_MATERIAL,V.ODBC.con!rstJob.FieldValFloat!AMT_LABOR,V.ODBC.con!rstJob.FieldValFloat!AMT_OVERHEAD,V.Local.fCost)
+						V.uGlobal.uRpt(V.Local.iUB)!Cost_Sepcial.Set(V.Local.fCost)
+					F.Intrinsic.Control.EndIf
+					F.ODBC.con!rstJob.Close
+				F.Intrinsic.Control.EndIf
+		F.Intrinsic.Control.EndSelect
+	F.Intrinsic.Control.EndIf
+	F.ODBC.con!rst.MoveNext
+F.Intrinsic.Control.Loop
+F.ODBC.con!rst.Close
+V.Local.sSql.Set("Select * from V_JOB_HEADER where DATE_CLOSED > '1900-1-1'")
+F.ODBC.Connection!con.OpenRecordsetRO("rst",V.Local.sSql)
+F.Intrinsic.Control.DoUntil(V.ODBC.con!rst.EOF,=,True)
+	F.Intrinsic.Variable.UDTMultiSeek(V.uGlobal.uRpt!Job,V.ODBC.con!rst.FieldValTrim!JOB,V.uGlobal.uRpt!Suffix,V.ODBC.con!rst.FieldValTrim!Suffix,V.Local.sRet)
+	F.Intrinsic.Control.If(V.Local.sRet,=,"")
+		F.Intrinsic.Control.If(V.uGlobal.uRpt.UBound,=,-1)
+			V.uGlobal.uRpt.Redim(0,0)
+		F.Intrinsic.Control.EndIf
+		F.Intrinsic.Math.Add(V.Local.iUB,1,V.Local.iUB)
+		V.uGlobal.uRpt.RedimPreserve(0,V.Local.iUB)
+		V.uGlobal.uRpt(V.Local.iUB)!Terminal.Set(V.Caller.Terminal)
+		V.uGlobal.uRpt(V.Local.iUB)!Job.Set(V.ODBC.con!rst.FieldValTrim!JOB)
+		V.uGlobal.uRpt(V.Local.iUB)!Suffix.Set(V.ODBC.con!rst.FieldValTrim!SUFFIX)
+		F.Intrinsic.Control.If(V.ODBC.con!rst.FieldValTrim!PRODUCT_LINE,=,"BL")
+			V.uGlobal.uRpt(V.Local.iUB)!Blank_Material.Set(V.ODBC.con!rst.FieldValFloat!AMT_MATERIAL)
+			V.uGlobal.uRpt(V.Local.iUB)!Blank_Labor.Set(V.ODBC.con!rst.FieldValFloat!AMT_LABOR)
+			V.uGlobal.uRpt(V.Local.iUB)!Blank_OH.Set(V.ODBC.con!rst.FieldValFloat!AMT_OVERHEAD)
+			F.Intrinsic.Math.Add(V.ODBC.con!rst.FieldValFloat!AMT_MATERIAL,V.ODBC.con!rst.FieldValFloat!AMT_LABOR,V.ODBC.con!rst.FieldValFloat!AMT_OVERHEAD,V.Local.fCost)
+			V.uGlobal.uRpt(V.Local.iUB)!Cost_Blank.Set(V.Local.fCost)
+		F.Intrinsic.Control.Else
+			V.uGlobal.uRpt(V.Local.iUB)!Stock_Material.Set(V.ODBC.con!rst.FieldValFloat!AMT_MATERIAL)
+			V.uGlobal.uRpt(V.Local.iUB)!Stock_Labor.Set(V.ODBC.con!rst.FieldValFloat!AMT_LABOR)
+			V.uGlobal.uRpt(V.Local.iUB)!Stock_OH.Set(V.ODBC.con!rst.FieldValFloat!AMT_OVERHEAD)
+			F.Intrinsic.Math.Add(V.ODBC.con!rst.FieldValFloat!AMT_MATERIAL,V.ODBC.con!rst.FieldValFloat!AMT_LABOR,V.ODBC.con!rst.FieldValFloat!AMT_OVERHEAD,V.Local.fCost)
+			V.uGlobal.uRpt(V.Local.iUB)!Cost_Stock.Set(V.Local.fCost)
+		F.Intrinsic.Control.EndIf
+	F.Intrinsic.Control.EndIf
+	F.ODBC.con!rst.MoveNext
+F.Intrinsic.Control.Loop
+F.ODBC.con!rst.Close
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("LoadUDT_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3782_COGS_Sales.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.LoadUDT.End
+
+Program.Sub.LoadRST.Start
+F.Intrinsic.Control.SetErrorHandler("LoadRST_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.sSql.Declare(String)
+
+F.Intrinsic.String.Concat("Delete GCG_3782_COGS_Sales where Terminal = '",V.Caller.Terminal,"'",V.Local.sSql)
+F.ODBC.Connection!con.Execute(V.Local.sSql)
+F.Intrinsic.Control.If(V.uGlobal.uRpt.UBound,>,-1)
+	V.Local.sSql.Set("Select * From GCG_3782_COGS_Sales")
+	F.ODBC.Connection!con.OpenRecordsetRW("rst",V.Local.sSql)
+	F.Intrinsic.Variable.SaveUDTToRecordset("con","rst","Variable.uGlobal.uRpt")
+	F.ODBC.con!rst.Close
+F.Intrinsic.Control.EndIf
+F.Intrinsic.Control.CallSub(Callbi)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("LoadRST_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3782_COGS_Sales.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.LoadRST.End
+
+Program.Sub.CallBI.Start
+F.Intrinsic.Control.SetErrorHandler("CallBI_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+V.Local.iBI.Declare(Long)
+V.Local.sParam.Declare(String)
+V.Local.sParamVal.Declare(String)
+
+F.Intrinsic.Control.If(V.Screen.SS_Form1!chkDetial.Value,=,0)
+	F.Global.BI.GetIDFromName("GCG_3782_BI_COGS_Sales.rpt",V.Local.iBI)
+F.Intrinsic.Control.Else
+	F.Global.BI.GetIDFromName("GCG_3782_BI_Cogs_Sales_Detail.rpt",V.Local.iBI)
+F.Intrinsic.Control.EndIf
+'Setting parameter values and titles
+V.Local.sParam.Set("Terminal*!*StartDate*!*StopDate")
+F.Intrinsic.String.Concat(V.Caller.Terminal,"*!*",V.Screen.SS_Form1!dtpStart.Value,"*!*",V.Screen.SS_Form1!dtpEnd.Value,V.Local.sParamVal)
+F.Intrinsic.String.Split(V.Local.sParam,"*!*",V.Local.sParam)
+F.Intrinsic.String.Split(V.Local.sParamVal,"*!*",V.Local.sParamVal)
+'Calling Crystal Report
+F.Global.BI.PrintReport(V.Local.iBI,0,V.Local.sParam,V.Local.sParamVal,"",False)
+F.Intrinsic.Control.CallSub(Ss_form1_unload)
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("CallBI_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_3782_COGS_Sales.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+Program.Sub.CallBI.End
+
+Program.Sub.ScreenSS.Start
+SS_Form1{{CAPTION::COGS Sales Report
+SS_Form1.CTRL{{NAME::dtpStart\\TYPE::6\\CAPTION::Start Date\\GROUP::1\\BROWSER::0\\SIZE::1
+SS_Form1.CTRL{{NAME::dtpEnd\\TYPE::6\\CAPTION::End Date\\GROUP::1\\BROWSER::0\\SIZE::1
+SS_Form1.CTRL{{NAME::chkDetial\\TYPE::9\\CAPTION::Print Detail\\GROUP::-1\\BROWSER::0\\SIZE::1
+SS_Form1.CTRL{{NAME::cmdPrint\\TYPE::5\\CAPTION::Print\\GROUP::-1\\BROWSER::0\\SIZE::1
+
+Program.Sub.ScreenSS.End
+
